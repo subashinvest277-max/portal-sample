@@ -161,3 +161,5 @@ curl http://54.169.76.235/api/
   108  ls django_backend/migrations/
   109  python manage.py migrate
 
+
+editing the fileee 
