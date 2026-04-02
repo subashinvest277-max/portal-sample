@@ -1,0 +1,163 @@
+front end :
+git clone https://github.com/lokeshsomasundaram/email-project.git
+cd email-project
+sudo apt update
+sudo apt install nginx -y
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs 
+cd frontend
+cd ~/email-project/frontend
+ls -a
+nano .env
+npm install
+npm run build
+sudo cp -r dist/* /var/www/html
+
+cd /etc/nginx/sites-available
+sudo rm -rf default
+
+sudo nano /etc/nginx/sites-available/default
+
+server {
+    listen 80;
+    server_name 54.169.76.235;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+sudo rm -f /etc/nginx/sites-enabled/*
+sudo ln -s /etc/nginx/sites-available/nginxfile /etc/nginx/sites-enabled/nginxfile
+
+ls -l /etc/nginx/sites-available/
+ls -l /etc/nginx/sites-enabled/
+
+sudo nginx -t
+sudo systemctl restart nginx
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl status nginx
+sudo systemctl restart nginx
+
+
+
+backend:
+sudo apt install python3-venv -y
+cd ~/email-project
+sudo nano fastapi_app/main.py
+-----------------------------------------------
+edit ip 
+-------------------------------------------
+python3 -m venv venv
+source venv/bin/activate
+
+cd .. (cone to email-project)
+
+pip install -r requirements.txt
+uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000
+
+sudo nano /etc/systemd/system/fastapi.service
+
+--------------------------------------------------------------------------------------------------------------
+[Unit]
+Description=FastAPI Email Project Service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/email-project
+
+ExecStart=/home/ubuntu/email-project/fastapi_app/venv/bin/uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+-------------------------------------------------------------------------------------------
+sudo systemctl daemon-reload
+sudo systemctl start fastapi
+sudo systemctl enable fastapi
+sudo systemctl status fastapi
+chk uvicorn is present --->
+ls /home/ubuntu/email-project/fastapi_app/venv/bin/uvicorn
+log---> journalctl -u fastapi -f
+
+
+curl http://127.0.0.1:8000
+
+
+
+
+database:
+sudo apt update
+sudo apt install mysql-server -y
+
+cd email project/email project
+nano settings.py
+--------------
+edit the ip
+edit the sql cred
+--------------
+
+mysql --version
+sudo MySQL
+
+CREATE DATABASE stackly_db;
+show databases;
+
+CREATE USER 'stackly_test'@'localhost' IDENTIFIED BY 'Test@1234';
+GRANT ALL PRIVILEGES ON stackly_db.* TO 'stackly_test'@'localhost';
+FLUSH PRIVILEGES;
+exit
+
+
+cd ~/email-project/fastapi_app
+source venv/bin/activate
+
+pip install pymysql
+cd..
+python manage.py migrate
+
+
+ls django_backend/migrations/
+python manage.py migrate django_backend 0003_emailstate_trashed_at
+python manage.py migrate django_backend --fake
+
+python manage.py migrate django_backend 0004_merge_0003_emailstate_0003_emailstate_trashed_at --fake
+
+
+curl http://127.0.0.1:8000
+curl http://54.169.76.235/api/
+
+
+
+
+
+
+
+
+
+      python manage.py migrate
+  101  ls django_backend/migrations/
+  102  python manage.py makemigrations --merge
+  103  ls django_backend/migrations/
+  104  python manage.py migrate
+  105  python manage.py migrate django_backend 0003_emailstate --fake
+  106  ls django_backend/migrations/
+  107  python manage.py migrate django_backend 0004_merge_0003_emailstate_0003_emailstate_trashed_at --fake
+  108  ls django_backend/migrations/
+  109  python manage.py migrate
+

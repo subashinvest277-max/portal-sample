@@ -1,0 +1,274 @@
+Jenkins -master
+
+sudo apt update
+sudo apt install fontconfig openjdk-21-jre
+java -version
+
+
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update
+sudo apt install Jenkins
+
+sudo systemctl enable Jenkins
+
+sudo systemctl start Jenkins
+
+sudo systemctl status Jenkins
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+
+install suggested plugins
+----GitHub integration
+
+ssh-keygen -t rsa -b 4096 -C "jenkins"
+cat ~/.ssh/id_rsa
+
+
+Manage Jenkins → Credentials → System → Global credentials
+Add Credentials
+Kind: SSH Username with private key
+id-deploy-ec2-key
+username-ubuntu
+cat ~/.ssh/id_rsa
+
+Manage Jenkins → Credentials → System → Global credentials
+Add Credentials
+Kind: username with password
+username- git-token
+password - finegraintoken
+id - Jenkins id
+
+Manage Jenkins → Credentials → System → Global credentials
+ssh-keygen -t rsa -b 4096 -C "jenkins"
+cat ~/.ssh/id_rsa.pub
+In GitHub - Settings → SSH and GPG Keys
+New SSH Key
+paste the public key here 
+ssh -T git@github.com
+
+----------------------------------------------------------------------------------------------
+✅ 1. For GitHub access (RECOMMENDED)
+Use: SSH Key (Best Practice)
+
+✔ This is what you should use for Jenkins → GitHub
+
+Steps (correct flow)
+On Jenkins server:
+ssh-keygen -t rsa -b 4096 -C "jenkins"
+cat ~/.ssh/id_rsa.pub
+In GitHub:
+Go to Settings → SSH and GPG Keys
+Click New SSH Key
+Paste the id_rsa.pub
+
+
+In Jenkins:
+Manage Jenkins → Credentials
+Add:
+Kind: SSH Username with private key
+Username: git
+Private key: paste id_rsa
+ID: github-ssh
+
+👉 Test:
+
+ssh -T git@github.com
+
+
+Master -slave connection
+✅ Correct Jenkins Credential
+Kind: SSH Username with private key
+Username: ubuntu
+Private key: slave EC2 (.pem)
+ID: deploy-ec2-key ✅ (matches your pipeline)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+sudo su - jenkins
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+exit
+sudo systemctl restart jenkins
+
+
+ssh-keygen -t rsa -b 4096 -C "jenkins"
+
+cat ~/.ssh/id_rsa.pub
+
+ssh -T git@github.com
+
+git clone git@github.com:your-username/your-repo.git
+
+
+Add GitHub Credentials in Jenkins
+Manage Jenkins → Credentials → Global → Add Credentials
+Choose:
+Kind: SSH Username with private key
+Username: git
+Private Key → Paste from:
+cat ~/.ssh/id_rsa
+
+
+
+New Item → Pipeline
+
+
+sudo apt update
+sudo apt install -y nodejs npm python3 python3-venv python3-pip rsync
+
+sudo ln -s /usr/bin/node /usr/local/bin/node
+sudo ln -s /usr/bin/npm /usr/local/bin/npm
+sudo systemctl restart jenkins
+
+----------------------------------------------------------------------------
+
+SALAVE
+
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install git -y
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install nodejs -y
+
+sudo apt install python3 python3-pip python3-venv -y
+
+sudo apt install nginx -y
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+sudo apt install rsync -y
+
+sudo apt update
+sudo apt install -y mysql-server
+
+sudo systemctl start mysql
+sudo systemctl enable MySQL
+sudo systemctl status MySQL
+
+mysql --version
+sudo MySQL
+
+CREATE DATABASE stackly_db;
+show databases;
+
+CREATE USER 'stackly_test'@'localhost' IDENTIFIED BY 'Test@1234';
+GRANT ALL PRIVILEGES ON stackly_db.* TO 'stackly_test'@'localhost';
+FLUSH PRIVILEGES;
+exit
+
+
+mkdir -p /home/ubuntu/stackly-email
+
+sudo rm -f /etc/nginx/sites-available/*
+sudo nano /etc/nginx/sites-available/nginxfile
+
+server {
+    listen 80;
+    server_name 54.254.239.45;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+sudo rm -f /etc/nginx/sites-enabled/*
+sudo ln -s /etc/nginx/sites-available/nginxfile /etc/nginx/sites-enabled/nginxfile
+
+ls -l /etc/nginx/sites-available/
+ls -l /etc/nginx/sites-enabled/
+
+sudo nginx -t
+sudo systemctl restart nginx
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl status nginx
+sudo systemctl restart nginx
+
+sudo nano /etc/systemd/system/fastapi.service
+
+--------------------------------------------------------------------------------------------------------------
+[Unit]
+Description=FastAPI Email Project Service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/email-project
+
+ExecStart=/home/ubuntu/email-project/fastapi_app/venv/bin/uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+-------------------------------------------------------------------------------------------
+
+
+nano /home/ubuntu/email-project/.env
+
+TWILIO_ACCOUNT_SID=your_sid
+TWILIO_AUTH_TOKEN=your_token
+TWILIO_PHONE_NUMBER=your_number
+
+
+------------------------------------------------------------------------------
+
+
+python3 -m venv venv
+source venv/bin/activate
+
+cd .. (cone to email-project)
+
+pip install -r requirements.txt
+uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000
+
+
+cd ~/email-project/frontend
+npm install
+npx vite build
+npm run build
+sudo rm -rf /var/www/html/*
+sudo cp -r dist/* /var/www/html/
+sudo systemctl restart nginx
+
+
+
+Go to master ec2
+
+ssh-keygen -t rsa -b 4096 -C "jenkins-slave-connection"
+
+ls ~/.ssh
+
+cat ~/.ssh/id_rsa.pub
+
+Go to SLAVE EC2
+
+mkdir -p ~/.ssh
+nano ~/.ssh/authorized_keys
+
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+
+Go back to Master (jenkins user):
+ssh ubuntu@<SLAVE-IP>
+
+
